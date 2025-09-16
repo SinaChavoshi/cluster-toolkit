@@ -1497,6 +1497,12 @@ This blueprint uses GKE to provision a Kubernetes cluster and a G4 node pool, al
 
 [gke-g4]: ../examples/gke-g4
 
+### [gke-inference-gateway] ![community-badge] ![experimental-badge]
+
+This blueprint deploys a large language model (LLM) on Google Kubernetes Engine (GKE) with the GKE Inference Gateway. It sets up a GKE cluster with H100 GPUs and deploys a vLLM model server. The configuration is based on the official [Getting started with an Inference Gateway](https://gateway-api-inference-extension.sigs.k8s.io/guides/) guide.
+
+[gke-inference-gateway]: ../community/examples/gke-inference-gateway/standard_cluster/README.md
+
 ## Blueprint Schema
 
 Similar documentation can be found on

@@ -1,0 +1,113 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+blueprint_name: gke-inference-gateway
+
+vars:
+  project_id: YOUR_PROJECT_ID # Update with your project ID
+  deployment_name: inference-gateway
+  region: us-central1
+  zone: us-central1-a
+  hf_token: YOUR_HF_TOKEN # Update with your Hugging Face Token
+  # The Kubernetes API server will only allow requests from authorized networks.
+  # You must supply an authorized network which contains the IP address of the
+  # machine deploying the blueprint.
+  authorized_cidr: 0.0.0.0/0 # Update with your IP address range
+
+deployment_groups:
+- group: primary
+  modules:
+  - id: network
+    source: modules/network/vpc
+
+  - id: gke_cluster
+    source: modules/scheduler/gke-cluster
+    use: [network]
+    settings:
+      release_channel: RAPID
+      master_authorized_networks:
+      - display_name: deployment-machine
+        cidr_block: $(vars.authorized_cidr)
+
+  - id: gpu_nodepool
+    source: modules/compute/gke-node-pool
+    use: [gke_cluster]
+    settings:
+      machine_type: a3-highgpu-2g
+      guest_accelerator:
+      - type: nvidia-h100-80gb
+        count: 2
+      static_node_count: 1
+
+- group: create_hf_secret
+  modules:
+  - id: create_hf_secret
+    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    settings:
+      content: |
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: hf-token
+        data:
+          token: $(vars.hf_token)
+
+- group: apply_crd
+  modules:
+  - id: apply_crd
+    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    settings:
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml
+
+- group: apply_gpu_deployment
+  modules:
+  - id: apply_gpu_deployment
+    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    settings:
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml
+
+- group: helm_install_inference_pool
+  modules:
+  - id: helm_install_inference_pool
+    source: community/modules/management/dependencies-installer/helm_install
+    settings:
+      release_name: vllm-llama3-8b-instruct
+      chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
+      chart_version: v1.0.0
+      set_values:
+        - name: provider.name
+          value: gke
+        - name: inferencePool.modelServers.matchLabels.app
+          value: vllm-llama3-8b-instruct
+
+- group: apply_gateway
+  modules:
+  - id: apply_gateway
+    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    settings:
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml
+
+- group: apply_httproute
+  modules:
+  - id: apply_httproute
+    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    settings:
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml
+
+- group: apply_inference_objective
+  modules:
+  - id: apply_inference_objective
+    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    settings:
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml
