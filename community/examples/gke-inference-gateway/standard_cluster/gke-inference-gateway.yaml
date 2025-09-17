@@ -30,6 +30,16 @@ deployment_groups:
   modules:
   - id: network
     source: modules/network/vpc
+    settings:
+      subnets:
+      - region: $(vars.region)
+        name: primary
+        ip_cidr_range: 10.0.0.0/24
+        secondary_ip_ranges:
+        - range_name: pods
+          ip_cidr_range: 10.1.0.0/16
+        - range_name: services
+          ip_cidr_range: 10.2.0.0/16
 
   - id: gke_cluster
     source: modules/scheduler/gke-cluster
