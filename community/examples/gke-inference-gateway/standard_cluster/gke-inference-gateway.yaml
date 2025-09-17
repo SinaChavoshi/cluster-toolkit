@@ -64,23 +64,28 @@ deployment_groups:
       static_node_count: 1
 
   - id: create_hf_secret
-    source: community/modules/scripts/command-runner
+    source: modules/management/kubectl-apply/kubectl
     use: [gpu_nodepool] # Depends on the cluster being fully ready
     settings:
-      command: |
-        kubectl create secret generic hf-token --from-literal=token='$(vars.hf_token)'
+      content: |
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: hf-token
+        data:
+          token: $(vars.hf_token)
 
   - id: apply_crd
-    source: modules/management/kubectl-apply
+    source: modules/management/kubectl-apply/kubectl
     use: [create_hf_secret]
     settings:
-      manifest_url: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml
 
   - id: apply_gpu_deployment
-    source: modules/management/kubectl-apply
+    source: modules/management/kubectl-apply/kubectl
     use: [apply_crd]
     settings:
-      manifest_url: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml
 
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
@@ -96,19 +101,19 @@ deployment_groups:
           value: vllm-llama3-8b-instruct
 
   - id: apply_gateway
-    source: modules/management/kubectl-apply
+    source: modules/management/kubectl-apply/kubectl
     use: [helm_install_inference_pool]
     settings:
-      manifest_url: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml
 
   - id: apply_httproute
-    source: modules/management/kubectl-apply
+    source: modules/management/kubectl-apply/kubectl
     use: [apply_gateway]
     settings:
-      manifest_url: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml
 
   - id: apply_inference_objective
-    source: modules/management/kubectl-apply
+    source: modules/management/kubectl-apply/kubectl
     use: [apply_httproute]
     settings:
-      manifest_url: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml
+      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml
