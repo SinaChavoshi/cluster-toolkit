@@ -20,15 +20,29 @@ This deployment is based on the official [Getting started with an Inference Gate
 
     *   `project_id`: Your Google Cloud project ID.
     *   `hf_token`: Your Hugging Face access token.
-    *   `authorized_cidr`: The IP address range of the machine you are using to deploy the blueprint (e.g., `YOUR_IP/32`). This is required for the toolkit to access the GKE cluster's API server.
+    *   `authorized_cidr`: **This is a critical setting.** The blueprint creates a private GKE cluster, which means its control plane is not exposed to the public internet by default. You must provide the public IP address of the machine you are deploying from so that it can be authorized to communicate with the cluster's API server.
+
+        **Do not use the default `0.0.0.0/0`.**
+
+        You can get your public IP address by running the following command:
+        ```shell
+        curl ifconfig.me/ip
+        ```
+        Take the output and add a `/32` suffix to it (for example, `34.12.34.56/32`). This is the value you should use for `authorized_cidr`.
 
 2.  **Deploy the blueprint:**
 
-    Run the following command from the root of the `cluster-toolkit` directory:
+    A successful deployment depends on providing the correct `authorized_cidr`. You can either edit the `gke-inference-gateway.yaml` file directly or override the variables on the command line.
 
+    **Example deployment command:**
     ```shell
-    ./gcluster deploy community/examples/gke-inference-gateway/standard_cluster/gke-inference-gateway.yaml
+    AUTHORIZED_IP=$(curl -s ifconfig.me)/32 && \
+    ./gcluster deploy community/examples/gke-inference-gateway/standard_cluster/gke-inference-gateway.yaml \
+      --vars project_id=YOUR_PROJECT_ID \
+      --vars hf_token=YOUR_HF_TOKEN \
+      --vars authorized_cidr=$AUTHORIZED_IP
     ```
+    *(Replace `YOUR_PROJECT_ID` and `YOUR_HF_TOKEN` with your actual values)*
 
     The deployment process will take several minutes as it provisions the GKE cluster, node pool, and all the necessary Kubernetes resources.
 
