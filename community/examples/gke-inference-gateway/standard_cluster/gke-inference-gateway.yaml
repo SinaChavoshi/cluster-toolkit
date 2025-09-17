@@ -47,6 +47,7 @@ deployment_groups:
     source: modules/scheduler/gke-cluster
     use: [network]
     settings:
+      enable_private_endpoint: false
       release_channel: RAPID
       master_authorized_networks:
       - display_name: deployment-machine
