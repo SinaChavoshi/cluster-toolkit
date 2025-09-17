@@ -31,11 +31,13 @@ deployment_groups:
   - id: network
     source: modules/network/vpc
     settings:
-      subnets:
-      - region: $(vars.region)
-        name: primary
-        ip_cidr_range: 10.0.0.0/24
-        secondary_ip_ranges:
+      subnetworks:
+      - subnet_name: primary
+        subnet_ip: 10.0.0.0/24
+        subnet_region: $(vars.region)
+      secondary_ranges_list:
+      - subnetwork_name: primary
+        ranges:
         - range_name: pods
           ip_cidr_range: 10.1.0.0/16
         - range_name: services
