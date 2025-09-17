@@ -58,6 +58,7 @@ deployment_groups:
     use: [gke_cluster]
     settings:
       machine_type: a3-highgpu-2g
+      auto_upgrade: true
       guest_accelerator:
       - type: nvidia-h100-80gb
         count: 2
