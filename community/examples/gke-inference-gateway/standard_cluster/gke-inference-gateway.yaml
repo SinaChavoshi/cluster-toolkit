@@ -60,6 +60,7 @@ deployment_groups:
       machine_type: a3-highgpu-2g
       auto_upgrade: true
       spot: true
+      zones: ["us-central1-a"]
       guest_accelerator:
       - type: nvidia-h100-80gb
         count: 2
