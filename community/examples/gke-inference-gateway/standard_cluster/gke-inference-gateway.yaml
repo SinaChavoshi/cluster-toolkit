@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-20.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,6 @@ vars:
   region: us-central1
   zone: us-central1-a
   hf_token: YOUR_HF_TOKEN # Update with your Hugging Face Token
-  # The Kubernetes API server will only allow requests from authorized networks.
-  # You must supply an authorized network which contains the IP address of the
-  # machine deploying the blueprint.
   authorized_cidr: 0.0.0.0/0 # Update with your IP address range
 
 deployment_groups:
@@ -67,29 +64,29 @@ deployment_groups:
       static_node_count: 1
 
   - id: create_hf_secret
-    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    source: community/modules/scripts/command-runner
+    use: [gpu_nodepool] # Depends on the cluster being fully ready
     settings:
-      wait_for_rollout: false
-      content: |
-        apiVersion: v1
-        kind: Secret
-        metadata:
-          name: hf-token
-        data:
-          token: $(vars.hf_token)
+      command: |
+        kubectl create secret generic hf-token --from-literal=token='$(vars.hf_token)'
 
   - id: apply_crd
-    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    source: community/modules/scripts/command-runner
+    use: [create_hf_secret]
     settings:
-      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml
+      command: |
+        kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml
 
   - id: apply_gpu_deployment
-    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    source: community/modules/scripts/command-runner
+    use: [apply_crd]
     settings:
-      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml
+      command: |
+        kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml
 
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
+    use: [apply_gpu_deployment]
     settings:
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
@@ -101,16 +98,22 @@ deployment_groups:
           value: vllm-llama3-8b-instruct
 
   - id: apply_gateway
-    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    source: community/modules/scripts/command-runner
+    use: [helm_install_inference_pool]
     settings:
-      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml
+      command: |
+        kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml
 
   - id: apply_httproute
-    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    source: community/modules/scripts/command-runner
+    use: [apply_gateway]
     settings:
-      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml
+      command: |
+        kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml
 
   - id: apply_inference_objective
-    source: community/modules/management/dependencies-installer/kubernetes_manifest
+    source: community/modules/scripts/command-runner
+    use: [apply_httproute]
     settings:
-      source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml
+      command: |
+        kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml
