@@ -66,8 +66,6 @@ deployment_groups:
         count: 2
       static_node_count: 1
 
-- group: create_hf_secret
-  modules:
   - id: create_hf_secret
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
@@ -80,22 +78,16 @@ deployment_groups:
         data:
           token: $(vars.hf_token)
 
-- group: apply_crd
-  modules:
   - id: apply_crd
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
       source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml
 
-- group: apply_gpu_deployment
-  modules:
   - id: apply_gpu_deployment
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
       source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml
 
-- group: helm_install_inference_pool
-  modules:
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
     settings:
@@ -108,22 +100,16 @@ deployment_groups:
         - name: inferencePool.modelServers.matchLabels.app
           value: vllm-llama3-8b-instruct
 
-- group: apply_gateway
-  modules:
   - id: apply_gateway
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
       source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml
 
-- group: apply_httproute
-  modules:
   - id: apply_httproute
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
       source_path: https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml
 
-- group: apply_inference_objective
-  modules:
   - id: apply_inference_objective
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
