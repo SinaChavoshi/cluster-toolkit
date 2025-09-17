@@ -71,6 +71,7 @@ deployment_groups:
   - id: create_hf_secret
     source: community/modules/management/dependencies-installer/kubernetes_manifest
     settings:
+      wait_for_rollout: false
       content: |
         apiVersion: v1
         kind: Secret
