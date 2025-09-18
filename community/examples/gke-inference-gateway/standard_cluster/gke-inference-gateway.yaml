@@ -82,7 +82,6 @@ deployment_groups:
   - id: apply_manifests
     source: modules/management/kubectl-apply
     settings:
-      cluster_id: $(dep.primary.gke_cluster.cluster_id)
       apply_manifests:
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml"
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml"
@@ -95,7 +94,6 @@ deployment_groups:
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
     settings:
-      cluster_.d: $(dep.primary.gke_cluster.cluster_id)
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
       chart_version: v1.0.0
