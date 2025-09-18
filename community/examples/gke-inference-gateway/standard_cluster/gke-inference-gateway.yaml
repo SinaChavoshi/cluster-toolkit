@@ -96,7 +96,6 @@ deployment_groups:
 
   - id: helm_install_inference_pool
     source: modules/management/kubectl-apply/helm_install
-    use: [gke_cluster]
     settings:
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
