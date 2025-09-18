@@ -93,7 +93,6 @@ deployment_groups:
     source: community/modules/management/dependencies-installer/helm_install
     use: [gke_cluster]
     settings:
-      cluster_id: $(gke_cluster.cluster_id)
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
       chart_version: v1.0.0
