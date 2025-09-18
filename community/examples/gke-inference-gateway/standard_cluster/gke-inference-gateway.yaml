@@ -42,6 +42,7 @@ deployment_groups:
 
   - id: gke_cluster
     source: modules/scheduler/gke-cluster
+    use: [network]
     settings:
       enable_private_endpoint: false
       release_channel: RAPID
@@ -51,6 +52,7 @@ deployment_groups:
 
   - id: gpu_nodepool
     source: modules/compute/gke-node-pool
+    use: [gke_cluster]
     settings:
       machine_type: a3-highgpu-2g
       auto_upgrade: true
@@ -61,17 +63,19 @@ deployment_groups:
         count: 2
       static_node_count: 1
 
-  - id: create_hf_secret
-    source: modules/management/kubectl-apply
-    settings:
-      apply_manifests:
-      - content: |
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: hf-token
-          data:
-            token: $(vars.hf_token)
+  # - id: create_hf_secret
+  #   source: modules/management/kubectl-apply
+  #   use: [gke_cluster]
+  #   settings:
+  #     cluster_id: $(gke_cluster.cluster_id)
+  #     apply_manifests:
+  #     - content: |
+  #         apiVersion: v1
+  #         kind: Secret
+  #         metadata:
+  #           name: hf-token
+  #         data:
+  #           token: $(vars.hf_token)
 
   - id: apply_manifests
     source: modules/management/kubectl-apply
@@ -94,3 +98,4 @@ deployment_groups:
           value: gke
         - name: inferencePool.modelServers.matchLabels.app
           value: vllm-llama3-8b-instruct
+}
