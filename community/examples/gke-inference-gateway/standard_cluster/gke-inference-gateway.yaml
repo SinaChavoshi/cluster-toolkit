@@ -16,7 +16,7 @@ blueprint_name: gke-inference-gateway
 
 vars:
   project_id: YOUR_PROJECT_ID # Update with your project ID
-  deployment_name: inference-gateway
+  deployment_name: inference-gateway-2
   region: us-central1
   zone: us-central1-a
   authorized_cidr: 0.0.0.0/0 # Update with your IP address range
