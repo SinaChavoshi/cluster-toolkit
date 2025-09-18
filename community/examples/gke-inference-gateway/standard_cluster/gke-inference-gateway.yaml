@@ -78,7 +78,7 @@ deployment_groups:
 
   - id: create_hf_secret
     source: modules/management/kubectl-apply
-    use: [gke_cluster]
+    use: [apply_crds]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
@@ -88,7 +88,7 @@ deployment_groups:
 
   - id: apply_model_server
     source: modules/management/kubectl-apply
-    use: [gke_cluster]
+    use: [create_hf_secret]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
