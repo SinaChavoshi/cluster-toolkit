@@ -79,11 +79,15 @@ deployment_groups:
 
   - id: apply_manifests
     source: modules/management/kubectl-apply
-    use: [gke_cluster]
+    use: [create_hf_secret]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: $(ghpc_stage("../manifests/"))
+      - source: $(ghpc_stage("../manifests/manifests.yaml"))
+      - source: $(ghpc_stage("../manifests/gpu-deployment.yaml"))
+      - source: $(ghpc_stage("../manifests/gateway.yaml"))
+      - source: $(ghpc_stage("../manifests/httproute.yaml"))
+      - source: $(ghpc_stage("../manifests/inferenceobjective.yaml"))
 
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
@@ -96,3 +100,4 @@ deployment_groups:
           value: gke
         - name: inferencePool.modelServers.matchLabels.app
           value: vllm-llama3-8b-instruct
+}
