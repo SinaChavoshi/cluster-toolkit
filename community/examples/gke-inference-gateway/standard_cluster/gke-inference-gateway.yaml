@@ -74,7 +74,7 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "../manifests/manifests.yaml"
+      - source: "$(ghpc_stage('../manifests/manifests.yaml'))"
 
   - id: create_hf_secret
     source: modules/management/kubectl-apply
@@ -82,7 +82,7 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "../manifests/hf-secret.yaml.tftpl"
+      - source: "$(ghpc_stage('../manifests/hf-secret.yaml.tftpl'))"
         template_vars:
           hf_token: $(vars.hf_token)
 
@@ -92,10 +92,11 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "../manifests/gpu-deployment.yaml"
+      - source: "$(ghpc_stage('../manifests/gpu-deployment.yaml'))"
 
   - id: helm_install_inference_pool
     source: modules/management/kubectl-apply/helm_install
+    use: [apply_model_server]
     settings:
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
@@ -108,10 +109,10 @@ deployment_groups:
 
   - id: apply_gateway
     source: modules/management/kubectl-apply
-    use: [gke_cluster]
+    use: [helm_install_inference_pool]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "../manifests/gateway.yaml"
-      - source: "../manifests/httproute.yaml"
-      - source: "../manifests/inferenceobjective.yaml"
+      - source: "$(ghpc_stage('../manifests/gateway.yaml'))"
+      - source: "$(ghpc_stage('../manifests/httproute.yaml'))"
+      - source: "$(ghpc_stage('../manifests/inferenceobjective.yaml'))"
