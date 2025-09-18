@@ -43,10 +43,6 @@ deployment_groups:
   - id: gke_cluster
     source: modules/scheduler/gke-cluster
     settings:
-      network_name: $(network.network_name)
-      subnetwork_name: $(network.subnetwork_name)
-      pods_ip_cidr_range: $(network.pods_ip_cidr_range)
-      services_ip_cidr_range: $(network.services_ip_cidr_range)
       enable_private_endpoint: false
       release_channel: RAPID
       master_authorized_networks:
@@ -56,7 +52,6 @@ deployment_groups:
   - id: gpu_nodepool
     source: modules/compute/gke-node-pool
     settings:
-      cluster_name: $(gke_cluster.cluster_name)
       machine_type: a3-highgpu-2g
       auto_upgrade: true
       spot: true
@@ -69,7 +64,6 @@ deployment_groups:
   - id: create_hf_secret
     source: modules/management/kubectl-apply
     settings:
-      cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
       - content: |
           apiVersion: v1
@@ -82,7 +76,6 @@ deployment_groups:
   - id: apply_manifests
     source: modules/management/kubectl-apply
     settings:
-      cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml"
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml"
@@ -93,7 +86,6 @@ deployment_groups:
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
     settings:
-      cluster_id: $(gke_cluster.cluster_id)
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
       chart_version: v1.0.0
