@@ -78,7 +78,7 @@ deployment_groups:
 
   - id: create_hf_secret
     source: modules/management/kubectl-apply
-    use: [apply_crds]
+    use: [gke_cluster, apply_crds]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
@@ -86,7 +86,7 @@ deployment_groups:
 
   - id: apply_model_server
     source: modules/management/kubectl-apply
-    use: [create_hf_secret]
+    use: [gke_cluster, create_hf_secret]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
@@ -94,7 +94,7 @@ deployment_groups:
 
   - id: helm_install_inference_pool
     source: modules/management/kubectl-apply/helm_install
-    use: [apply_model_server]
+    use: [gke_cluster, apply_model_server]
     settings:
       release_name: vllm-llama3-8b-instruct
       chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
@@ -107,7 +107,7 @@ deployment_groups:
 
   - id: apply_gateway
     source: modules/management/kubectl-apply
-    use: [helm_install_inference_pool]
+    use: [gke_cluster, helm_install_inference_pool]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
