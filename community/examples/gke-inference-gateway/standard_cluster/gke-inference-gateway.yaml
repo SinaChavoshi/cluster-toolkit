@@ -19,7 +19,6 @@ vars:
   deployment_name: inference-gateway
   region: us-central1
   zone: us-central1-a
-  hf_token: YOUR_HF_TOKEN # Update with your Hugging Face Token
   authorized_cidr: 0.0.0.0/0 # Update with your IP address range
 
 deployment_groups:
