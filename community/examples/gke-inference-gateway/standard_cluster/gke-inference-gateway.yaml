@@ -74,7 +74,7 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "$(ghpc_stage(../manifests/manifests.yaml))"
+      - source: $(ghpc_stage("community/examples/gke-inference-gateway/manifests/manifests.yaml"))
 
   - id: create_hf_secret
     source: modules/management/kubectl-apply
@@ -82,7 +82,7 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "$(ghpc_stage(../manifests/hf-secret.yaml.tftpl))"
+      - source: $(ghpc_stage("community/examples/gke-inference-gateway/manifests/hf-secret.yaml.tftpl"))
         template_vars:
           hf_token: $(vars.hf_token)
 
@@ -92,7 +92,7 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "$(ghpc_stage(../manifests/gpu-deployment.yaml))"
+      - source: $(ghpc_stage("community/examples/gke-inference-gateway/manifests/gpu-deployment.yaml"))
 
   - id: helm_install_inference_pool
     source: modules/management/kubectl-apply/helm_install
@@ -113,6 +113,6 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "$(ghpc_stage(../manifests/gateway.yaml))"
-      - source: "$(ghpc_stage(../manifests/httproute.yaml))"
-      - source: "$(ghpc_stage(../manifests/inferenceobjective.yaml))"
+      - source: $(ghpc_stage("community/examples/gke-inference-gateway/manifests/gateway.yaml"))
+      - source: $(ghpc_stage("community/examples/gke-inference-gateway/manifests/httproute.yaml"))
+      - source: $(ghpc_stage("community/examples/gke-inference-gateway/manifests/inferenceobjective.yaml"))
