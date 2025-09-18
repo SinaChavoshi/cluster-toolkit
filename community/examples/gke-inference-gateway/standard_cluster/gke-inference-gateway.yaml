@@ -6,7 +6,7 @@
 #
 #      http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
+# Unless required by applicable law_ or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
@@ -16,10 +16,11 @@ blueprint_name: gke-inference-gateway
 
 vars:
   project_id: YOUR_PROJECT_ID # Update with your project ID
-  deployment_name: inference-gateway-2
+  deployment_name: inference-gateway
   region: us-central1
   zone: us-central1-a
   authorized_cidr: 0.0.0.0/0 # Update with your IP address range
+  hf_token: YOUR_HF_TOKEN # Update with your Hugging Face token
 
 deployment_groups:
 - group: primary
@@ -31,6 +32,11 @@ deployment_groups:
       - subnet_name: primary
         subnet_ip: 10.0.0.0/24
         subnet_region: $(vars.region)
+      - subnet_name: proxy-only
+        subnet_ip: 10.0.1.0/24
+        subnet_region: $(vars.region)
+        purpose: REGIONAL_MANAGED_PROXY
+        role: ACTIVE
       secondary_ranges_list:
       - subnetwork_name: primary
         ranges:
@@ -62,14 +68,49 @@ deployment_groups:
         count: 2
       static_node_count: 1
 
-  - id: apply_manifests
+  - id: apply_crds
     source: modules/management/kubectl-apply
     use: [gke_cluster]
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest/download/manifests.yaml"
-      - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/vllm/gpu-deployment.yaml"
-      - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml"
-      - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml"
-      - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml"
+      - source: "../manifests/manifests.yaml"
+
+  - id: create_hf_secret
+    source: modules/management/kubectl-apply
+    use: [apply_crds]
+    settings:
+      cluster_id: $(gke_cluster.cluster_id)
+      apply_manifests:
+      - source: "../manifests/hf-secret.yaml"
+
+  - id: apply_model_server
+    source: modules/management/kubectl-apply
+    use: [create_hf_secret]
+    settings:
+      cluster_id: $(gke_cluster.cluster_id)
+      apply_manifests:
+      - source: "../manifests/gpu-deployment.yaml"
+
+  - id: helm_install_inference_pool
+    source: modules/management/kubectl-apply/helm_install
+    use: [apply_model_server]
+    settings:
+      release_name: vllm-llama3-8b-instruct
+      chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
+      chart_version: v1.0.0
+      set_values:
+      - name: inferencePool.modelServers.matchLabels.app
+        value: vllm-llama3-8b-instruct
+      - name: provider.name
+        value: gke
+
+  - id: apply_gateway
+    source: modules/management/kubectl-apply
+    use: [helm_install_inference_pool]
+    settings:
+      cluster_id: $(gke_cluster.cluster_id)
+      apply_manifests:
+      - source: "../manifests/gateway.yaml"
+      - source: "../manifests/httproute.yaml"
+      - source: "../manifests/inferenceobjective.yaml"
