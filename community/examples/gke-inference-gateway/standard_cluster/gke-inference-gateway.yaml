@@ -63,20 +63,6 @@ deployment_groups:
         count: 2
       static_node_count: 1
 
-  # - id: create_hf_secret
-  #   source: modules/management/kubectl-apply
-  #   use: [gke_cluster]
-  #   settings:
-  #     cluster_id: $(gke_cluster.cluster_id)
-  #     apply_manifests:
-  #     - content: |
-  #         apiVersion: v1
-  #         kind: Secret
-  #         metadata:
-  #           name: hf-token
-  #         data:
-  #           token: $(vars.hf_token)
-
   - id: apply_manifests
     source: modules/management/kubectl-apply
     use: [gke_cluster]
@@ -88,16 +74,3 @@ deployment_groups:
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/gateway.yaml"
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/gateway/gke/httproute.yaml"
       - source: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/raw/main/config/manifests/inferenceobjective.yaml"
-
-  - id: helm_install_inference_pool
-    source: community/modules/management/dependencies-installer/helm_install
-    use: [gke_cluster]
-    settings:
-      release_name: vllm-llama3-8b-instruct
-      chart_name: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
-      chart_version: v1.0.0
-      set_values:
-        - name: provider.name
-          value: gke
-        - name: inferencePool.modelServers.matchLabels.app
-          value: vllm-llama3-8b-instruct
