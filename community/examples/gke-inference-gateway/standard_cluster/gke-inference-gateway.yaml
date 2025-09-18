@@ -83,7 +83,7 @@ deployment_groups:
     settings:
       cluster_id: $(gke_cluster.cluster_id)
       apply_manifests:
-      - source: ../manifests/
+      - source: $(ghpc_stage("../manifests/"))
 
   - id: helm_install_inference_pool
     source: community/modules/management/dependencies-installer/helm_install
