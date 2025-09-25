@@ -440,7 +440,7 @@ module "kubectl_apply" {
   cluster_id = google_container_cluster.gke_cluster.id
   project_id = var.project_id
 
-  apply_manifests = flatten([
+  apply_manifests = concat(flatten([
     for idx, network_info in local.all_networks : [
       {
         source = "${path.module}/templates/gke-network-paramset.yaml.tftpl",
@@ -455,7 +455,6 @@ module "kubectl_apply" {
         source        = "${path.module}/templates/network-object.yaml.tftpl",
         template_vars = { name = network_info.name }
       }
-    ],
-    local.igw_crd_manifests
-  ])
+    ]
+  ]), local.igw_crd_manifests)
 }
