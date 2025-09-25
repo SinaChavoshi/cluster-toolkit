@@ -230,7 +230,7 @@ resource "google_container_cluster" "gke_cluster" {
       enabled = var.enable_managed_lustre_csi
     }
     http_load_balancing {
-      enabled = var.enable_inference_gateway
+      disabled = !var.enable_inference_gateway
     }
   }
 
