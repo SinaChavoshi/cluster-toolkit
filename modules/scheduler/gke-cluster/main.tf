@@ -229,8 +229,11 @@ resource "google_container_cluster" "gke_cluster" {
     lustre_csi_driver_config {
       enabled = var.enable_managed_lustre_csi
     }
-    http_load_balancing {
-      disabled = !var.enable_inference_gateway
+    dynamic "http_load_balancing" {
+      for_each = var.enable_inference_gateway ? [1] : []
+      content {
+        disabled = false
+      }
     }
   }
 
