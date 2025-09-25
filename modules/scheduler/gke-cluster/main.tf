@@ -229,6 +229,9 @@ resource "google_container_cluster" "gke_cluster" {
     lustre_csi_driver_config {
       enabled = var.enable_managed_lustre_csi
     }
+    http_load_balancing {
+      enabled = var.enable_inference_gateway
+    }
   }
 
   timeouts {
@@ -422,6 +425,13 @@ locals {
   ]
 
   all_networks = concat(local.gvnic_networks, local.rdma_networks)
+
+  igw_crd_manifests = var.enable_inference_gateway ? [
+    {
+      source        = "../../management/kubectl-apply/manifests/inference-gateway-crd-manifests.yaml"
+      template_vars = {}
+    }
+  ] : []
 }
 
 module "kubectl_apply" {
@@ -445,6 +455,7 @@ module "kubectl_apply" {
         source        = "${path.module}/templates/network-object.yaml.tftpl",
         template_vars = { name = network_info.name }
       }
-    ]
+    ],
+    local.igw_crd_manifests
   ])
 }
