@@ -14,7 +14,7 @@
 
 ---
 
-blueprint_name: gke-a3-highgpu-inference-gateway      
+blueprint_name: gke-a3-highgpu-inference-gateway
 
 vars:
   project_id:  ## Set GCP Project ID Here ##
