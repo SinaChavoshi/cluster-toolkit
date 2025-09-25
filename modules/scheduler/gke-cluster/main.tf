@@ -425,13 +425,6 @@ locals {
   ]
 
   all_networks = concat(local.gvnic_networks, local.rdma_networks)
-
-  igw_crd_manifests = var.enable_inference_gateway ? [
-    {
-      source        = "../../management/kubectl-apply/manifests/inference-gateway-crd-manifests.yaml"
-      template_vars = {}
-    }
-  ] : []
 }
 
 module "kubectl_apply" {
@@ -456,5 +449,12 @@ module "kubectl_apply" {
         template_vars = { name = network_info.name }
       }
     ]
-  ]), local.igw_crd_manifests)
+  ]),
+  var.enable_inference_gateway ? [
+    {
+      source = "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.0.0/manifests.yaml",
+      template_vars = {}
+    }
+  ] : []
+  )
 }
