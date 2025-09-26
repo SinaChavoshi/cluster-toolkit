@@ -167,6 +167,10 @@ resource "google_container_cluster" "gke_cluster" {
     workload_pool = "${var.project_id}.svc.id.goog"
   }
 
+    gateway_api_config {
+      channel = var.enable_inference_gateway ? "CHANNEL_STANDARD" : "CHANNEL_DISABLED"
+    }
+
   dynamic "authenticator_groups_config" {
     for_each = local.cluster_authenticator_security_group
     content {
@@ -235,9 +239,6 @@ resource "google_container_cluster" "gke_cluster" {
         disabled = false
       }
     }
-    gateway_api_config {
-      channel = var.enable_inference_gateway ? "CHANNEL_STANDARD" : "CHANNEL_DISABLED"
-    }
   }
 
   timeouts {
@@ -287,13 +288,6 @@ resource "google_container_cluster" "gke_cluster" {
 
   logging_config {
     enable_components = local.default_logging_component
-  }
-
-  dynamic "gateway_api_config" {
-    for_each = var.enable_inference_gateway ? [1] : []
-    content {
-      channel = "CHANNEL_STANDARD"
-    }
   }
 }
 
