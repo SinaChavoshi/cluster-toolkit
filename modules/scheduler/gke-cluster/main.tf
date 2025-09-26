@@ -452,12 +452,12 @@ module "kubectl_apply" {
         template_vars = { name = network_info.name }
       }
     ]
-  ]),
-  var.enable_inference_gateway ? [
-    {
-      source = "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.0.0/manifests.yaml",
-      template_vars = {}
-    }
-  ] : []
-  )
-}
+    ]),
+    var.enable_inference_gateway ? [
+      {
+        source        = "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.0.0/manifests.yaml",
+        template_vars = {}
+      }
+    ] : []
+   )
+ }
