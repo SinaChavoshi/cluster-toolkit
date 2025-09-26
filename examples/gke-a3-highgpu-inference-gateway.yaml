@@ -37,6 +37,7 @@ deployment_groups:
       subnetworks:
       - subnet_name: $(vars.deployment_name)-subnet
         subnet_region: $(vars.region)
+        subnet_ip: "10.1.0.0/20"
       - subnet_name: $(vars.deployment_name)-proxy-subnet
         subnet_region: $(vars.region)
         subnet_ip: "10.1.16.0/24"
