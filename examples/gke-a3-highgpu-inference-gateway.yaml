@@ -32,10 +32,11 @@ deployment_groups:
   - id: network1
     source: modules/network/vpc
     settings:
-      subnetwork_name: $(vars.deployment_name)-subnet
       ips_per_nat: 6
       mtu: 8244
       subnetworks:
+      - subnet_name: $(vars.deployment_name)-subnet
+        subnet_region: $(vars.region)
       - subnet_name: $(vars.deployment_name)-proxy-subnet
         subnet_region: $(vars.region)
         subnet_ip: "10.1.16.0/24"
@@ -103,7 +104,7 @@ deployment_groups:
     use: [gke_cluster, gpunets, node_pool_service_account]
     settings:
       machine_type: a3-highgpu-8g
-      static_node_count: 3
+      static_node_count: 2
       zones: [$(vars.zone)]
     outputs: [instructions]
 
