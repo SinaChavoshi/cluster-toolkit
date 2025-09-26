@@ -235,6 +235,12 @@ resource "google_container_cluster" "gke_cluster" {
         disabled = false
       }
     }
+    dynamic "gateway_api_config" {
+      for_each = var.enable_inference_gateway ? [1] : []
+      content {
+        enabled = true
+      }
+    }
   }
 
   timeouts {
