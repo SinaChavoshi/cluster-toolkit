@@ -48,12 +48,6 @@ deployment_groups:
           ip_cidr_range: 10.4.0.0/14
         - range_name: services
           ip_cidr_range: 10.0.32.0/20
-      - subnetwork_name: $(vars.deployment_name)-proxy-subnet
-        ranges:
-        - range_name: pods
-          ip_cidr_range: 10.8.0.0/14
-        - range_name: services
-          ip_cidr_range: 10.0.48.0/20
 
   - id: node_pool_service_account
     source: community/modules/project/service-account
