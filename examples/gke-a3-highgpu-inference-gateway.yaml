@@ -35,6 +35,12 @@ deployment_groups:
       subnetwork_name: $(vars.deployment_name)-subnet
       ips_per_nat: 6
       mtu: 8244
+      subnetworks:
+      - subnet_name: $(vars.deployment_name)-proxy-subnet
+        subnet_region: $(vars.region)
+        subnet_ip: "10.1.16.0/24"
+        purpose: "REGIONAL_MANAGED_PROXY"
+        role: "ACTIVE"
       secondary_ranges_list:
       - subnetwork_name: $(vars.deployment_name)-subnet
         ranges:
@@ -42,13 +48,8 @@ deployment_groups:
           ip_cidr_range: 10.4.0.0/14
         - range_name: services
           ip_cidr_range: 10.0.32.0/20
-      subnetworks:
-      - subnet_name: $(vars.deployment_name)-proxy-subnet
-        subnet_region: $(vars.region)
-        subnet_ip: "10.1.16.0/24"
-        purpose: "REGIONAL_MANAGED_PROXY"
-        role: "ACTIVE"
-        secondary_ip_range:
+      - subnetwork_name: $(vars.deployment_name)-proxy-subnet
+        ranges:
         - range_name: pods
           ip_cidr_range: 10.5.0.0/14
         - range_name: services
