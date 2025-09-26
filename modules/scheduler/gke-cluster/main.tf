@@ -288,6 +288,13 @@ resource "google_container_cluster" "gke_cluster" {
   logging_config {
     enable_components = local.default_logging_component
   }
+
+  dynamic "gateway_api_config" {
+    for_each = var.enable_inference_gateway ? [1] : []
+    content {
+      channel = "CHANNEL_STANDARD"
+    }
+  }
 }
 
 # We define explicit node pools, so that it can be modified without
